@@ -7,6 +7,7 @@ import (
 )
 
 func handleWhoami(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "%s %s %s\n", req.Method, req.URL.String(), req.Proto)
 	fmt.Fprintf(w, "Host: %s\n", req.Host)
 	keys := make([]string, 0, len(req.Header))
@@ -22,7 +23,13 @@ func handleWhoami(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func handleOK(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
 	http.HandleFunc("/", handleWhoami)
+	http.HandleFunc("/healthz/live", handleOK)
+	http.HandleFunc("/healthz/ready", handleOK)
 	http.ListenAndServe(":8080", nil)
 }
