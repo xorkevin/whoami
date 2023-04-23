@@ -9,8 +9,8 @@ RUN go build -v -trimpath -ldflags "-w -s" -o /usr/local/bin/whoami .
 FROM scratch
 MAINTAINER xorkevin <kevin@xorkevin.com>
 WORKDIR /home/whoami
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /usr/local/bin/whoami /usr/local/bin/whoami
+COPY --from=builder /etc/passwd /etc/
+COPY --from=builder /usr/local/bin/whoami /usr/local/bin/
 EXPOSE 8080
 USER whoami
 ENTRYPOINT ["/usr/local/bin/whoami"]

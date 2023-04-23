@@ -5,7 +5,7 @@ VERSION=1
 TAG=$(IMAGE):$(VERSION)
 LATEST=$(IMAGE):latest
 
-all: build
+all: build-docker
 
 dev:
 	go run server.go
