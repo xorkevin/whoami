@@ -1,4 +1,4 @@
-.PHONY: all dev build publish
+.PHONY: all dev
 
 IMAGE=xorkevin/whoami
 VERSION=1
@@ -10,9 +10,13 @@ all: build
 dev:
 	go run server.go
 
-build:
+.PHONY: build-docker publish-docker docker
+
+build-docker:
 	docker build -t $(LATEST) -t $(TAG) .
 
-publish:
+publish-docker:
 	docker push $(TAG)
 	docker push $(LATEST)
+
+docker: build-docker publish-docker
