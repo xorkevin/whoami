@@ -1,19 +1,24 @@
-FROM cgr.dev/chainguard/go:latest as builder
-WORKDIR /usr/local/src/go/whoami
-COPY --link go.mod /usr/local/src/go/whoami/go.mod
-COPY --link go.sum /usr/local/src/go/whoami/go.sum
-RUN \
-  --mount=type=cache,id=gomodcache,sharing=locked,target=/root/go/pkg/mod \
-  go mod download -json && go mod verify
-COPY --link . /usr/local/src/go/whoami
-RUN \
-  --mount=type=cache,id=gomodcache,sharing=locked,target=/root/go/pkg/mod \
-  --mount=type=cache,id=gobuildcache,sharing=locked,target=/root/.cache/go-build \
-  GOPROXY=off go build -v -trimpath -ldflags "-w -s" -o /usr/local/bin/whoami .
+ARG appname=whoami
 
-FROM cgr.dev/chainguard/glibc-dynamic:latest
+FROM golang:1.21.7-bookworm as builder
+ARG appname
+WORKDIR "/go/src/$appname"
+RUN [ \( "$(go env GOARCH)" = 'amd64' \) -a \( "$(go env GOOS)" = 'linux' \) ]
+RUN \
+  --mount=type=cache,id=gomodcache,sharing=locked,target=/go/pkg/mod \
+  --mount=type=bind,source=go.mod,target=go.mod \
+  --mount=type=bind,source=go.sum,target=go.sum \
+  go mod download -json && go mod verify
+RUN \
+  --mount=type=cache,id=gomodcache,sharing=locked,readonly,target=/go/pkg/mod \
+  --mount=type=cache,id=gobuildcache,sharing=locked,target=/root/.cache/go-build \
+  --mount=type=bind,source=.,target=. \
+  GOPROXY=off CGO_ENABLED=0 go build -v -trimpath -ldflags "-w -s" -o "/usr/local/bin/$appname" .
+
+FROM debian:12.4-slim
+ARG appname
 LABEL org.opencontainers.image.authors="Kevin Wang <kevin@xorkevin.com>"
-COPY --link --from=builder /usr/local/bin/whoami /usr/local/bin/whoami
+COPY --link --from=builder "/usr/local/bin/$appname" "/usr/local/bin/$appname"
 EXPOSE 8080
-WORKDIR /home/whoami
-ENTRYPOINT ["/usr/local/bin/whoami"]
+WORKDIR "/home/$appname"
+ENTRYPOINT ["whoami"]

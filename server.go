@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"sort"
+	"slices"
 )
 
 func handleWhoami(w http.ResponseWriter, req *http.Request) {
@@ -14,7 +14,7 @@ func handleWhoami(w http.ResponseWriter, req *http.Request) {
 	for k := range req.Header {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 	for _, header := range keys {
 		values := req.Header[header]
 		for _, v := range values {
